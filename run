@@ -42,6 +42,25 @@ def runRoutine(joysticks: Sticks, config, scripts, abort_file, loop: bool):
         print(f"Script duration {(end_time_ns - routine_start_time_ns)/ONE_SEC_NS}sec")
         routine_end_time_ns = end_time_ns
 
+    # Remove any buttons that have no actions
+    for button in list(routine_button_inputs.keys()):
+        if 0 == len(routine_button_inputs[button]):
+            del(routine_button_inputs[button])
+            # print(f"Button {button} unused, removing from input list")
+    
+    # Remove any sticks that have no actions, pre-calculate positions rather than perform trig
+    # ops during script runtime for more consistent executions
+    for stick in list(routine_stick_inputs.keys()):
+        if 0 == len(routine_stick_inputs[stick]):
+            del(routine_stick_inputs[stick])
+            # print(f"Stick {stick} unused, removing from input list")
+        else:
+            for stick_action in routine_stick_inputs[stick]:
+                stick_action.x, stick_action.y = joysticks.getStickPositionFromAngle(stick_action.angle,
+                                                                                     stick_action.magnitude)
+                # print(f"X - {stick_action.x}, Y - {stick_action.y}")
+
+
     aborted = False
     while not aborted:
         routine_buttons = deepcopy(routine_button_inputs)
@@ -81,12 +100,22 @@ def runRoutine(joysticks: Sticks, config, scripts, abort_file, loop: bool):
                     if action.time <= current_time_ns:
                         if StickInputs.LEFT_STICK == stick:
                             if action.state == StickPosition.START:
+                                # Can be enabled for debug
                                 # print(f"Ls {action.angle} {action.magnitude}")
-                                joysticks.setLeftStickPositionAngle(action.angle, action.magnitude)
+
+                                # Old method to calculate position live from angle. Using pre-calculated now.
+                                # joysticks.setLeftStickPositionAngle(action.angle, action.magnitude)
+
+                                joysticks.setExplicitLeftStickPosition(action.x, action.y)
                         elif StickInputs.RIGHT_STICK == stick:
                             if action.state == StickPosition.START:
+                                # Can be enabled for debug
                                 # print(f"Rs {action.angle} {action.magnitude}")
-                                joysticks.setRightStickPositionAngle(action.angle, action.magnitude)
+
+                                # Old method to calculate position live from angle. Using pre-calculated now.
+                                # joysticks.setRightStickPositionAngle(action.angle, action.magnitude)
+
+                                joysticks.setExplicitRightStickPosition(action.x, action.y)
                         routine_sticks[stick].pop(0)
                 except IndexError:
                     del(routine_sticks[stick])

@@ -68,11 +68,13 @@ class Sticks(object):
             self.resetSticks()
             sleep(0.05)
 
-    def setLeftStickPosition(self, x: float, y: float):
-        if not self._validatePositions(x, y):
-            return False
-        self.positions[self.lx_channel] = self._getPos(x)
-        self.positions[self.ly_channel] = self._getPos(y)
+    def getStickPositionFromAngle(self, angle: float, magnitude: int):
+        return [self._getXPosFromAngle(angle, magnitude), self._getYPosFromAngle(angle, magnitude)]
+
+    # No validation, expected to be used with getStickPositionFromAngle
+    def setExplicitLeftStickPosition(self, x: int, y: int):
+        self.positions[self.lx_channel] = x
+        self.positions[self.ly_channel] = y
         self._applyStickPositions()
         return True
 
@@ -84,11 +86,10 @@ class Sticks(object):
         self._applyStickPositions()
         return True
 
-    def setRightStickPosition(self, x: float, y: float):
-        if not self._validatePositions(x, y):
-            return False
-        self.positions[self.rx_channel] = self._getPos(x)
-        self.positions[self.ry_channel] = self._getPos(y)
+    # No validation, expected to be used with getStickPositionFromAngle
+    def setExplicitRightStickPosition(self, x: int, y: int):
+        self.positions[self.rx_channel] = x
+        self.positions[self.ry_channel] = y
         self._applyStickPositions()
 
     def setRightStickPositionAngle(self, angle: float, magnitude: int):

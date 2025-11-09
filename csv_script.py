@@ -3,10 +3,6 @@ from os import path
 from copy import deepcopy
 from math import sin, cos, radians
 
-# Helper, perform data validation before using
-def angleToXY(angle: float, magnitude: int):
-    return [(sin(radians(angle)) * magnitude), (cos(radians(angle)) * magnitude)]
-
 class ButtonState(object):
     ON = True
     OFF = False
@@ -17,7 +13,7 @@ class ButtonState(object):
 class StickPosition(object):
     START = True
     END = False
-    def __init__(self, angle: float=0, magnitude: int=0, state=END, time=0):
+    def __init__(self, angle: float=0, magnitude: int=0, state=END, time=0, x=None, y=None):
         # Simple class to hold data, validate valid position elsewhere
         self.angle = angle
         self.magnitude = magnitude
@@ -27,6 +23,12 @@ class StickPosition(object):
         # Instead there is a start and end marker where the start marker indicates when the stick
         # should move, and the end marker indicated when the next movement can be made
         self.state = state
+        
+        # X/Y typically independent of angle/magnitude, but also harder to use directly. Either
+        # can be used/stored here, though. Up to user to determine which to use if both present.
+        self.y = x
+        self.x = y
+
 
 class ButtonInputs(dict):
     def __init__(self, *arg, **kw):
