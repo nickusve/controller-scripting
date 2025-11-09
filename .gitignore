@@ -1,2 +1,4 @@
 smbus.py
 copy_to_pi.sh
+FakeGpio.py
+*.pyc

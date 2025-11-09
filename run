@@ -16,7 +16,9 @@ try:
     import RPi.GPIO as GPIO
 except RuntimeError:
     print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
-
+except ModuleNotFoundError:
+    print("GPIO module not found, attempting to use fake on if this is a dev env")
+    import FakeGpio as GPIO
 
 def runRoutine(joysticks: Sticks, config, scripts, abort_file, loop: bool):
     ONE_SEC_NS = 1000000000
