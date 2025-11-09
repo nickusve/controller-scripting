@@ -1,0 +1,55 @@
+{
+    "board_pin_map": {
+        "a": 7,
+        "b": 16,
+        "x": 11,
+        "y": 15,
+        "+": 26,
+        "-": 29,
+        "up": 23,
+        "down": 21,
+        "left": 22,
+        "right": 19,
+        "lb": 32,
+        "zl": 31,
+        "rb": 13,
+        "zr": 18,
+        "home": 36
+    },
+    "stick_channels": {
+        "lx": 3,
+        "ly": 2,
+        "rx": 1,
+        "ry": 0
+    },
+    "stick_settings": {
+        "bus": 1,
+        "address": 96,
+        "vref": 1,
+        "gain": 1,
+        "max": 1200,
+        "min": 0,
+        "deadzone": 150,
+        "reset_on_start": true
+    },
+    "scripts": [
+        {
+            "file": "scripts/restart_game.csv",
+            "repeats": "0"
+        },
+        {
+            "file": "scripts/revive_first_fossil.csv",
+            "repeats": "29"
+        },
+        {
+            "file": "scripts/open_box.csv",
+            "repeats": "0"
+        }
+    ],
+    "min_transition_times_ms": {
+        "buttons": 50,
+        "sticks": 40
+    },
+    "reset_inputs_on_exit": true,
+    "abort_if_file_present": "/tmp/abort"
+}
