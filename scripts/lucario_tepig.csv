@@ -1,0 +1,10 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+ls,330,100,50,2000,,go_to_area
+b,,,110,50,start,run
+ls,0,0,0,100,go_to_area,
++,,,50,50,,menu
+ls,60,100,50,140,,map_to_area
+ls,0,0,0,100,,
+a,,,150,50,,
+a,,,735,50,,confirm
+b,0,0,0,3700,,wait_for_load 

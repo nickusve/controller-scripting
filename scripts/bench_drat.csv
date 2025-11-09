@@ -1,0 +1,10 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+ls,180,50,100,100,,benchy
+ls,0,0,0,100,,
+a,,,0,50,benchy,start_prompt
+a,,,700,50,,what_a
+a,,,200,50,,kill
+a,,,100,50,,do_you
+a,,,500,50,,yes
+a,,,500,50,,yes2
+a,,,500,50,,yes3

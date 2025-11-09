@@ -1,0 +1,174 @@
+#!/bin/python3
+
+from mcp4728 import Vref, Gain
+from sticks import Sticks, Channel
+from csv_script import Script, ButtonState, StickPosition, ButtonInputs, StickInputs
+
+from argparse import ArgumentParser
+from sys import argv
+from os import path
+from copy import deepcopy
+from time import perf_counter_ns
+from json import load as jload
+from json import dumps as jdump
+
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
+
+
+def runRoutine(joysticks: Sticks, config, scripts, abort_file, loop: bool):
+    ONE_SEC_NS = 1000000000
+
+    pinmap = config["board_pin_map"]
+
+    print(f"Running routine with scripts: {scripts}")
+    routine_start_time_ns=0
+    routine_end_time_ns = routine_start_time_ns
+
+    routine_button_inputs = ButtonInputs()
+    routine_stick_inputs = StickInputs()
+
+    for script in scripts:
+        script = Script(script["file"], int(script["repeats"]), 
+                        int(config["min_transition_times_ms"]["buttons"]),
+                        int(config["min_transition_times_ms"]["sticks"]))
+        buttons, sticks, end_time_ns = script.getInputs(routine_end_time_ns)
+        for button in buttons.keys():
+            routine_button_inputs[button].extend(buttons[button])
+        for stick in sticks.keys():
+            routine_stick_inputs[stick].extend(sticks[stick])
+        print(f"Script duration {(end_time_ns - routine_start_time_ns)/ONE_SEC_NS}sec")
+        routine_end_time_ns = end_time_ns
+
+    aborted = False
+    while not aborted:
+        routine_buttons = deepcopy(routine_button_inputs)
+        routine_sticks = deepcopy(routine_stick_inputs)
+        
+        # Allow up to an extra second for any late/lingering actions to run
+        max_end_time_ns = routine_end_time_ns + ONE_SEC_NS
+        done = False
+        
+        # Inputs are scheduled starting at time 0. Loop below calculates "current" time as an offset
+        # from the start time.
+        #
+        # Pre-calculating input times at some point in the future is likely slightly more accurate
+        # since the time calc is not needed, but introduces artificial latency before starting.
+        current_time_ns = 0
+        start_time_ns = perf_counter_ns()
+        while not done and max_end_time_ns > current_time_ns:
+            if None != abort_file and path.isfile(abort_file):
+                aborted = True
+                break
+            for button in list(routine_buttons.keys()):
+                # try except to ignore buttons/sticks with no actions left
+                try:
+                    action = routine_buttons[button][0]
+                    if action.time <= current_time_ns:
+                        # print(f"{button} {action.state}")
+                        GPIO.output(pinmap[button], GPIO.HIGH if action.state else GPIO.LOW)
+                        routine_buttons[button].pop(0)
+                except IndexError:
+                    del(routine_buttons[button])
+                    if 0 == len(routine_buttons.keys()) and 0 == len(routine_sticks.keys()):
+                        done = True
+                        break
+            for stick in list(routine_sticks.keys()):
+                try:
+                    action = routine_sticks[stick][0]
+                    if action.time <= current_time_ns:
+                        if StickInputs.LEFT_STICK == stick:
+                            if action.state == StickPosition.START:
+                                # print(f"Ls {action.angle} {action.magnitude}")
+                                joysticks.setLeftStickPositionAngle(action.angle, action.magnitude)
+                        elif StickInputs.RIGHT_STICK == stick:
+                            if action.state == StickPosition.START:
+                                # print(f"Rs {action.angle} {action.magnitude}")
+                                joysticks.setRightStickPositionAngle(action.angle, action.magnitude)
+                        routine_sticks[stick].pop(0)
+                except IndexError:
+                    del(routine_sticks[stick])
+                    if 0 == len(routine_buttons.keys()) and 0 == len(routine_sticks.keys()):
+                        done = True
+                        break
+            current_time_ns = perf_counter_ns() - start_time_ns 
+        if not loop:
+            break
+
+def main():
+    args = getArgs()
+
+    # Further arg parsing
+    if not path.isfile(args.file):
+        print(f"'{args.file}' is not a file")
+        raise SystemExit(1)
+    
+    if "script" == args.command:
+        if not path.isfile(args.config):
+            print(f"Config file '{args.config}' not found")
+            raise SystemExit(1)
+        if 0 > args.repeats:
+            print("Repeats cannot be negative")
+            raise SystemExit(1)
+        with open(args.config, "r") as input:
+            config = jload(input)
+        scripts = [{
+            "file": args.file,
+            "repeats": args.repeats
+        }]
+        
+    elif "routine" == args.command:
+        with open(args.file, "r") as input:
+            config = jload(input)
+        scripts = config["scripts"]
+    else:
+        print(f"Unknown command: {args.command}")
+        raise SystemExit(1)
+    
+
+    # Execute scripts/routine
+    pinmap = config["board_pin_map"]
+    abort_file = None if "abort_if_file_present" not in config else config["abort_if_file_present"]
+
+    joysticks = Sticks(Channel(config["stick_channels"]["lx"]), Channel(config["stick_channels"]["ly"]),
+                    Channel(config["stick_channels"]["rx"]), Channel(config["stick_channels"]["ry"]),
+                    Vref(config["stick_settings"]["vref"]), Gain(config["stick_settings"]["gain"]),
+                    config["stick_settings"]["address"], config["stick_settings"]["bus"])
+
+    joysticks.configure(config["stick_settings"]["max"], config["stick_settings"]["min"],
+                    config["stick_settings"]["deadzone"], config["stick_settings"]["reset_on_start"])
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(list(pinmap.values()), GPIO.OUT, initial=GPIO.LOW)
+
+    try:
+        runRoutine(joysticks, config, scripts, abort_file, args.loop)
+    except KeyboardInterrupt:
+        print("Caught keyboard interrupt, stopping")
+
+    if "reset_inputs_on_exit" in config and config["reset_inputs_on_exit"]:
+        GPIO.cleanup()
+        joysticks.resetSticks()
+
+def getArgs():
+    parser = ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
+
+    script = subparsers.add_parser("script")
+    script.add_argument("file", metavar="script_file", type=str)
+    script.add_argument("-c", "--config", type=str, required=False, default="defaults/config.json", help="Config file")
+    script.add_argument("-r", "--repeats", type=int, required=False, default=0, help="Number of times to repeat script")
+    script.add_argument("-l", "--loop", action="store_true", help="Loop the script (and its repeats) until stopped")
+
+    routine = subparsers.add_parser("routine")
+    routine.add_argument("file", metavar="routine_file", type=str)
+    routine.add_argument("-l", "--loop", action="store_true", help="Loop the routine until stopped")
+
+    args = parser.parse_args()
+
+
+    return args
+
+if __name__ == "__main__":
+    main()

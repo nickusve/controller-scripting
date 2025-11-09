@@ -1,0 +1,7 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+ls,0,100,0,3000,,walk_f
+b,,,0,50,start,
+ls,0,0,0,50,walk_f,pause
+ls,0,-100,0,3000,pause,walk_b
+b,,,0,50,pause,
+ls,0,0,0,50,walk_b,

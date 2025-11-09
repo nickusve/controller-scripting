@@ -1,0 +1,7 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
++,,,0,50,,
+ls,23,100,50,220,,go_to_area
+ls,0,0,0,100,,
+a,,,0,50,,select_area
+a,,,700,50,,confirm
+b,0,0,0,3700,,wait_for_load

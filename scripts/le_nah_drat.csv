@@ -1,0 +1,8 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
++,0,0,0,50,,
+ls,90,50,100,100,,
+ls,0,0,0,100,,
+a,,,0,50,,
+a,,,800,50,,
++,0,0,100,50,,
+ls,0,0,0,3300,,

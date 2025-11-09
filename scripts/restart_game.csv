@@ -1,0 +1,7 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+home,,,0,50,,go_home
+x,,,600,50,,close
+a,,,600,50,,confirm
+a,,,600,50,,reopen
+a,,,7000,50,,load_game
+b,,,5500,50,,wait_for_control

@@ -1,0 +1,16 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+ls,180,50,100,100,,benchy
+ls,0,0,0,100,,
+a,,,100,50,benchy,start_prompt
+a,,,700,50,,what_a
+a,,,270,50,,kill
+a,,,1150,50,,do_you
+a,,,400,50,,yes
+ls,180,50,16500,100,,benchy_at_night
+ls,0,0,0,100,,
+a,,,100,50,benchy_at_night,start_prompt_at_night
+a,,,700,50,,what_a_at_night
+a,,,270,50,,kill_at_night
+a,,,1150,50,,do_you_at_night
+a,,,400,50,,yes_at_night
+b,,,0,15000,,wait_for_nxt

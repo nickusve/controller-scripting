@@ -1,0 +1,11 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+ls,0,100,0,2000,,walk_f
+b,,,0,50,start,
+y,,,150,50,,
+y,,,1600,50,,
+ls,0,0,0,50,walk_f,pause
+ls,181,100,0,3100,pause,walk_b
+b,,,0,50,pause,
+y,,,750,50,,
+y,,,1350,50,,
+ls,0,0,0,50,walk_b,

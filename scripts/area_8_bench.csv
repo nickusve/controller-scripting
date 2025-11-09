@@ -1,0 +1,14 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+b,,,50,50,,start_run
+ls,270,100,0,2100,start,go_to_area
+ls,270,-100,0,2100,,go_to_area2
+ls,0,0,0,100,,
+a,,,0,50,go_to_area2,start_prompt
+a,,,700,50,,what_a
+a,,,200,50,,kill
+a,,,100,50,,do_you
+a,,,500,50,,yes
+a,,,500,50,,yes2
+a,,,500,50,,yes3
+a,,,500,50,,yes4
+ls,0,0,0,19000,,wait_for_transition

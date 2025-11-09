@@ -1,0 +1,11 @@
+input,angle,magnitude,start_delay_ms,duration_ms,start_after_id,id
+rs,0,2,0,10,,grr,
+zl,,,50,500,,,
+a,,,200,50,grr,
+a,,,5,50,,
+rs,0,0,0,100,,,
+rs,0,2,100,10,,grr2,
+zl,,,50,500,,,
+b,,,200,50,grr2,
+b,,,5,50,,
+rs,0,0,0,100,,,
